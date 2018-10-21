@@ -1,16 +1,35 @@
 version: 2
 jobs:
   build:
+    environment:
+      CODECOV_TOKEN: 2b48012d-ef31-4a8c-ad3a-a82a2a8b6d5f
     docker:
     - image: golang:1.11-alpine
 
     working_directory: /src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
-    - run: |
-        apk add --no-cache --no-progress git gcc musl-dev && \
+    - run:
+        name: Prepare Environment
+        command: |
+          apk add --no-cache --no-progress git gcc musl-dev curl bash
           go get -u golang.org/x/lint/golint
+          rm -fr ./vendor
     - checkout
-    - run: rm -fr ./vendor
-    - run: golint -set_exit_status ./...
-    - run: go mod vendor
-    - run: go test -v ./...
+    - run:
+        name: Linting
+        command: golint -set_exit_status ./...
+    - run:
+        name: Unit Test
+        command: |
+          go mod vendor
+          echo > coverage.txt
+
+          for d in $(go list ./... | grep -v vendor); do
+              go test -coverprofile=profile.out -covermode=atomic "$d"
+              if [ -f profile.out ]; then
+                  cat profile.out >> coverage.txt
+                  rm profile.out
+              fi
+          done
+
+          curl -s https://codecov.io/bash | bash
