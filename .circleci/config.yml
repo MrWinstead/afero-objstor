@@ -1,0 +1,12 @@
+version: 2
+jobs:
+  build:
+    docker:
+    - image: circleci/golang:1.11
+
+    working_directory: /src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+    - checkout
+    - run: go mod vendor
+    - run: go test -v ./...
+      
