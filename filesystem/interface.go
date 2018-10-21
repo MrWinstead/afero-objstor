@@ -1,4 +1,4 @@
-package afero_objstor
+package filesystem
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/afero"
 )
 
+// DeadlineFs describes a super-set of afero.Fs which respects contexts
 type DeadlineFs interface {
 	afero.Fs
 
@@ -51,6 +52,7 @@ type DeadlineFs interface {
 	ChtimesEx(ctx context.Context, name string, atime time.Time, mtime time.Time) error
 }
 
+// DeadlineFile describes a super-set of afero.File which respects contexts
 type DeadlineFile interface {
 	afero.File
 

@@ -8,12 +8,14 @@ import (
 	"github.com/spf13/afero"
 )
 
-type FsConstructorOption func(fs *ObjStorFs) error
+// ConstructorOption to provide to the constructor of an Object storage filesystem
+type ConstructorOption func(fs *ObjStorFs) error
 
 type fsOptions struct {
 	deadlines map[string]time.Duration
 }
 
+// ObjStorFs is an Object Storage-backed filesystem
 type ObjStorFs struct {
 	bucket    *blob.Bucket
 	keyPrefix string
@@ -23,7 +25,7 @@ type ObjStorFs struct {
 	directoryCache        *lru.Cache
 
 	totalCachedFilesSizeMax uint64
-	filesCacheSizeMax int
+	filesCacheSizeMax       int
 	filesCache              *lru.Cache
 
 	opts fsOptions

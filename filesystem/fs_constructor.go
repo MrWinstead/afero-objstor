@@ -7,7 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewFs(options... FsConstructorOption) (*ObjStorFs, error) {
+// NewFs creates a new object storage filesytem with the specified options
+func NewFs(options ...ConstructorOption) (*ObjStorFs, error) {
 	created := &ObjStorFs{
 		opts: fsOptions{
 			deadlines: make(map[string]time.Duration),
@@ -27,7 +28,7 @@ func NewFs(options... FsConstructorOption) (*ObjStorFs, error) {
 		created.directoryCacheSizeMax = DefaultMaxCachedDirectories
 	}
 	directoryCache, err := lru.NewWithEvict(created.directoryCacheSizeMax,
-		created.EvictDirectoryCallback)
+		created.evictDirectoryCallback)
 	if nil != err {
 		err = errors.Wrap(err, "could not create directory cache")
 		return nil, err
@@ -41,7 +42,7 @@ func NewFs(options... FsConstructorOption) (*ObjStorFs, error) {
 		created.filesCacheSizeMax = DefaultMaxCachedFiles
 	}
 	filesCache, err := lru.NewWithEvict(created.filesCacheSizeMax,
-		created.EvictFileCallback)
+		created.evictFileCallback)
 	if nil != err {
 		err = errors.Wrap(err, "could not create files cache")
 		return nil, err

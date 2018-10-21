@@ -2,10 +2,13 @@ version: 2
 jobs:
   build:
     docker:
-    - image: circleci/golang:1.11
+    - image: golang:1.11-alpine
 
     working_directory: /src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
+    - run: |
+        apk add --no-cache --no-progress git gcc musl-dev && \
+          go get -u golang.org/x/lint/golint
     - checkout
     - run: rm -fr ./vendor
     - run: golint -set_exit_status ./...
