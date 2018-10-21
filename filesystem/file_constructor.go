@@ -1,9 +1,9 @@
 package filesystem
 
-func NewFile(fs *ObjStorFs, ctxGen ContextGenerator) (*ProjectedObject, error) {
+func newFile(fs *ObjStorFs) (*ProjectedObject, error) {
 	created := &ProjectedObject{
 		fs:     fs,
-		ctxGen: ctxGen,
+		ctxGen: fs.getOperationContext,
 	}
 
 	return created, nil

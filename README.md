@@ -1,5 +1,8 @@
 # Afero Object Storage Driver
 
+[![CircleCI](https://circleci.com/gh/MrWinstead/afero-objstor/tree/master.svg?style=svg)](https://circleci.com/gh/MrWinstead/afero-objstor/tree/master)
+[![GoDoc](https://godoc.org/github.com/MrWinstead/afero-objstor?status.svg)](https://godoc.org/github.com/MrWinstead/afero-objstor)
+
 ## Overview
 
 A filesystem backend for the

@@ -7,55 +7,72 @@ import (
 	"afero-objstor/errors"
 )
 
+// Name returns the filename of the object
 func (o *ProjectedObject) Name() string {
 	return o.Name()
 }
 
+// Read from the object into the provided buffer
 func (o *ProjectedObject) Read(p []byte) (int, error) {
-	ctx, _ := o.ctxGen("Read", DeadlineKeyRead)
+	ctx, _ := o.ctxGen("Read", deadlineKeyRead)
 	return o.ReadEx(ctx, p)
 }
 
+// ReadEx behaves like Read, but also allows passing a context with possible
+// deadline to lower layers
 func (o *ProjectedObject) ReadEx(ctx context.Context, p []byte) (int, error) {
-	err := &errors.UnsupportedOperation{
-		OperationFriendlyName: "Read",
-		Reason: "not implemented",
-	}
-	return 0, err
+	return o.ReadAtEx(ctx, p, o.currentPosition)
 }
 
+// ReadAt pulls bytes from the object into the provided buffer at the file's
+// current offset
 func (o *ProjectedObject) ReadAt(p []byte, off int64) (int, error) {
-	ctx, _ := o.ctxGen("ReadAt", DeadlineKeyRead)
+	ctx, _ := o.ctxGen("ReadAt", deadlineKeyRead)
 	return o.ReadAtEx(ctx, p, off)
 }
 
-func (o *ProjectedObject) ReadAtEx(ctx context.Context, p []byte, off int64) (int, error) {
+// ReadAtEx behaves like ReadAt, but also allows passing a context with possible
+// deadline to lower layers
+func (o *ProjectedObject) ReadAtEx(ctx context.Context, p []byte, off int64) (
+	int, error) {
 	err := &errors.UnsupportedOperation{
 		OperationFriendlyName: "ReadAt",
-		Reason: "not implemented",
+		Reason:                "not implemented",
 	}
 	return 0, err
 }
 
+// Readdir enumerates file information about all immediate children of this file
+// if it is a directory. It will return os.ErrInvalid when called on a file
 func (o *ProjectedObject) Readdir(count int) ([]os.FileInfo, error) {
-	ctx, _ := o.ctxGen("Readdir", DeadlineKeyMetadataRead)
+	ctx, _ := o.ctxGen("Readdir", deadlineKeyMetadataRead)
 	return o.ReaddirEx(ctx, count)
 }
 
-func (o *ProjectedObject) ReaddirEx(ctx context.Context, count int) ([]os.FileInfo, error) {
+// ReaddirEx behaves like Readdir, but also allows passing a context with
+// possible deadline to lower layers
+func (o *ProjectedObject) ReaddirEx(ctx context.Context, count int) (
+	[]os.FileInfo, error) {
+	if fileTypeFile == o.fileType {
+		return nil, os.ErrInvalid
+	}
 	err := &errors.UnsupportedOperation{
-		OperationFriendlyName:"Readdir",
-		Reason: "only files currenly supported",
+		OperationFriendlyName: "Readdir",
+		Reason:                "only files currenly supported",
 	}
 	return nil, err
 }
 
+// Readdirnames behaves like Readdir, but only returns the filenames
 func (o *ProjectedObject) Readdirnames(count int) ([]string, error) {
-	ctx, _ := o.ctxGen("Readdirnames", DeadlineKeyMetadataRead)
+	ctx, _ := o.ctxGen("Readdirnames", deadlineKeyMetadataRead)
 	return o.ReaddirnamesEx(ctx, count)
 }
 
-func (o *ProjectedObject) ReaddirnamesEx(ctx context.Context, count int) ([]string, error) {
+// ReaddirnamesEx behaves like Readdirnames, but also allows passing a context
+// with possible deadline to lower layers
+func (o *ProjectedObject) ReaddirnamesEx(ctx context.Context, count int) (
+	[]string, error) {
 	fullInfo, infoGatherErr := o.Readdir(count)
 	if nil != infoGatherErr {
 		return nil, infoGatherErr
