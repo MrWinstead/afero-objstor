@@ -1,6 +1,7 @@
 # Afero Object Storage Driver
 
 [![CircleCI](https://circleci.com/gh/MrWinstead/afero-objstor/tree/master.svg?style=svg)](https://circleci.com/gh/MrWinstead/afero-objstor/tree/master)
+[![codecov](https://codecov.io/gh/MrWinstead/afero-objstor/branch/master/graph/badge.svg)](https://codecov.io/gh/MrWinstead/afero-objstor)
 [![GoDoc](https://godoc.org/github.com/MrWinstead/afero-objstor?status.svg)](https://godoc.org/github.com/MrWinstead/afero-objstor)
 
 ## Overview
