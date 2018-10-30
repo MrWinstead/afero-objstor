@@ -38,7 +38,7 @@ func (f fileinfo) Sys() interface{} {
 	return nil
 }
 
-func (f fileinfo) toJsonStr() string {
+func (f fileinfo) toJSONStr() string {
 	serialized, serializeErr := json.Marshal(f)
 	if nil != serializeErr {
 		panic(serializeErr)
@@ -46,7 +46,7 @@ func (f fileinfo) toJsonStr() string {
 	return string(serialized)
 }
 
-func fileinfoFromJsonStr(serialized string) (*fileinfo, error) {
+func fileinfoFromJSONStr(serialized string) (*fileinfo, error) {
 	fi := &fileinfo{}
 	err := json.Unmarshal([]byte(serialized), fi)
 	if nil != err {

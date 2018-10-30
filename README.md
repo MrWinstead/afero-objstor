@@ -26,27 +26,40 @@ this library.
 ```go
 type DeadlineFs interface {
 	Name() string
+	
+	Create(name string) (File, error)
+	CreateEx(ctx context.Context, name string) (DeadlineFile, error)
+	
+	Open(name string) (File, error)
+	OpenEx(ctx context.Context, name string) (DeadlineFile, error)
 }
 
 type DeadlineFile interface {
+	io.Reader
+	ReadEx(ctx context.Context, p []byte) (count int, err error)
+	io.ReaderAt
+	ReadAtEx(ctx context.Context, p []byte, off int64) (count int, err error)
 	
+	io.Writer
+	WriteEx(ctx context.Context, p []byte) (count int, err error)
+	io.WriterAt
+	WriteAtEx(ctx context.Context, p []byte, off int64) (count int, err error)
+	WriteString(s string) (ret int, err error)
+	WriteStringEx(ctx context.Context, s string) (int, error)
+	
+	Sync() error
+	SyncEx(ctx context.Context) error
 }
 ```
 
 ### Currently Unsupported
 ```go
 type DeadlineFs interface {
-	
-	Create(name string) (File, error)
-	CreateEx(ctx context.Context, name string) (DeadlineFile, error)
-	
 	Mkdir(name string, perm os.FileMode) error
 	MkdirEx(ctx context.Context, name string, perm os.FileMode) error
 	MkdirAll(path string, perm os.FileMode) error
 	MkdirAllEx(ctx context.Context, path string, perm os.FileMode) error
 	
-	Open(name string) (File, error)
-	OpenEx(ctx context.Context, name string) (DeadlineFile, error)
 	OpenFile(name string, flag int, perm os.FileMode) (File, error)
 	OpenFileEx(ctx context.Context, name string, flag int, perm os.FileMode) (DeadlineFile, error)
 	
@@ -73,27 +86,12 @@ type DeadlineFile interface {
 	
 	io.Closer
 	CloseEx(ctx context.Context) error
-	
-	io.Reader
-	ReadEx(ctx context.Context, p []byte) (count int, err error)
-	io.ReaderAt
-	ReadAtEx(ctx context.Context, p []byte, off int64) (count int, err error)
-	
-	
-	io.Writer
-	WriteEx(ctx context.Context, p []byte) (count int, err error)
-	io.WriterAt
-	WriteAtEx(ctx context.Context, p []byte, off int64) (count int, err error)
-	WriteString(s string) (ret int, err error)
-	WriteStringEx(ctx context.Context, s string) (int, error)
 
 	Readdir(count int) ([]os.FileInfo, error)
 	ReaddirEx(ctx context.Context, count int) ([]os.FileInfo, error)
 	Readdirnames(n int) ([]string, error)
 	ReaddirnamesEx(ctx context.Context, count int) ([]string, error)
 	
-	Sync() error
-	SyncEx(ctx context.Context) error
 	Stat() (os.FileInfo, error)
 	StatEx(ctx context.Context) (os.FileInfo, error)
 	

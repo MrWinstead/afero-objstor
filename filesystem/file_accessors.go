@@ -7,7 +7,7 @@ import (
 	"afero-objstor/errors"
 )
 
-// NameField returns the filename of the object
+// Name returns the filename of the object
 func (o *ProjectedObject) Name() string {
 	return o.localInstance.Name()
 }

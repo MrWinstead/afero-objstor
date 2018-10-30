@@ -71,7 +71,7 @@ func (o *ProjectedObject) SyncEx(ctx context.Context) error {
 	}
 	fi := fileInfoIface.(*fileinfo)
 
-	serializedAttrs := fi.toJsonStr()
+	serializedAttrs := fi.toJSONStr()
 
 	err = o.localInstance.Sync()
 	if nil != err {

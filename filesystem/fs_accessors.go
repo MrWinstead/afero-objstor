@@ -8,7 +8,7 @@ import (
 	"path"
 )
 
-// NameField fetches the NameField of the filesystem driver
+// Name fetches the NameField of the filesystem driver
 func (fs *ObjStorFs) Name() string {
 	return "object-storage"
 }
@@ -55,7 +55,7 @@ func (fs *ObjStorFs) OpenEx(ctx context.Context, name string) (
 
 	serializedFileInfo, exists := attrs.Metadata[metadataKeyAttributes]
 	if exists {
-		fileInfo, deserializationErr := fileinfoFromJsonStr(serializedFileInfo)
+		fileInfo, deserializationErr := fileinfoFromJSONStr(serializedFileInfo)
 		if nil == deserializationErr {
 			applyErr := applyFileInfo(fs, fileInfo)
 			if nil != applyErr {
