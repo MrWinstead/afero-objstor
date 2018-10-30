@@ -3,10 +3,9 @@ package filesystem
 import (
 	"afero-objstor/errors"
 	"context"
-	"os"
 )
 
-// Truncate will cut the file to the specified size
+// Truncate will cut the file to the specified SizeField
 func (o *ProjectedObject) Truncate(size int64) error {
 	ctx, _ := o.ctxGen("Truncate", deadlineKeyWrite)
 	return o.TruncateEx(ctx, size)
@@ -26,17 +25,7 @@ func (o *ProjectedObject) TruncateEx(ctx context.Context, size int64) error {
 // is provided, os.ErrInvalid is returned. This functionality does not check for
 // integer over/underflows
 func (o *ProjectedObject) Seek(offset int64, whence int) (int64, error) {
-	switch whence {
-	case 0:
-		o.currentPosition = offset
-	case 1:
-		o.currentPosition += offset
-	case 2:
-		o.currentPosition = o.size - offset
-	default:
-		return 0, os.ErrInvalid
-	}
-	return o.currentPosition, nil
+	return o.localInstance.Seek(offset, whence)
 }
 
 // WriteAt writes the provided bytes at the provided offset
@@ -48,11 +37,17 @@ func (o *ProjectedObject) WriteAt(p []byte, offset int64) (int, error) {
 // WriteAtEx behaves like WriteAt, but also allows passing a context with possible
 // deadline to lower layers
 func (o *ProjectedObject) WriteAtEx(ctx context.Context, p []byte, offset int64) (int, error) {
-	err := &errors.UnsupportedOperation{
-		OperationFriendlyName: "WriteAt",
-		Reason:                "not implemented",
+	bytesWritten, localWriteErr := o.localInstance.WriteAt(p, offset)
+	if nil != localWriteErr {
+		return 0, localWriteErr
 	}
-	return 0, err
+	if o.fs.opts.readOptimize || !o.fs.opts.writeOptimize {
+		syncErr := o.SyncEx(ctx)
+		if nil != syncErr {
+			return 0, syncErr
+		}
+	}
+	return bytesWritten, nil
 }
 
 // Write writes the provided bytes to the current read/write file offset
@@ -64,7 +59,11 @@ func (o *ProjectedObject) Write(p []byte) (int, error) {
 // WriteEx behaves like Write, but also allows passing a context with possible
 // deadline to lower layers
 func (o *ProjectedObject) WriteEx(ctx context.Context, p []byte) (int, error) {
-	return o.WriteAtEx(ctx, p, o.currentPosition)
+	currentPosition, err := o.localInstance.Seek(0, 0)
+	if nil != err {
+		return 0, err
+	}
+	return o.WriteAtEx(ctx, p, currentPosition)
 }
 
 // WriteString calls Write with the string converted to UTF-8 bytes

@@ -1,8 +1,11 @@
 package filesystem
 
 import (
+	errors2 "afero-objstor/errors"
 	"context"
+	"fmt"
 	"os"
+	"path"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -20,11 +23,26 @@ func (fs *ObjStorFs) Create(name string) (afero.File, error) {
 // deadline to lower layers
 func (fs *ObjStorFs) CreateEx(ctx context.Context, name string) (
 	DeadlineFile, error) {
-	created, createErr := newFile(fs)
+	parentDirs, filename := path.Split(name)
+	if "/" != parentDirs {
+		err := &errors2.UnsupportedOperation{
+			OperationFriendlyName: "create",
+			Reason:                fmt.Sprintf("file '%v' has parent directories", name),
+		}
+		return nil, err
+	}
+
+	local, err := fs.localFs.Create(filename)
+	if nil != err {
+		return nil, err
+	}
+
+	created, createErr := newFile(fs, local, fileTypeFile)
 	if nil != createErr {
 		err := errors.Wrap(createErr, "could not create object")
 		return nil, err
 	}
+	fs.filesCache.Add(filename, created)
 	return created, nil
 }
 
@@ -53,7 +71,7 @@ func (fs *ObjStorFs) MkdirAllEx(ctx context.Context, path string, perm os.FileMo
 	return nil
 }
 
-// Remove will attempt to remove the specified file. If the name specified is a
+// Remove will attempt to remove the specified file. If the NameField specified is a
 // directory, it will only succeed if there are no files under the directory.
 func (fs *ObjStorFs) Remove(name string) error {
 	ctx, _ := fs.getOperationContext("Remove", deadlineKeyWrite)
@@ -66,7 +84,7 @@ func (fs *ObjStorFs) RemoveEx(ctx context.Context, name string) error {
 	return nil
 }
 
-// RemoveAll will attempt to remove the specified file. If the name specified is a
+// RemoveAll will attempt to remove the specified file. If the NameField specified is a
 // directory, it will delete all children recursively
 func (fs *ObjStorFs) RemoveAll(name string) error {
 	ctx, _ := fs.getOperationContext("RemoveAll", deadlineKeyWrite)
@@ -80,7 +98,7 @@ func (fs *ObjStorFs) RemoveAllEx(ctx context.Context, name string) error {
 }
 
 // Rename will attempt to rename the provided filename to the provided new one.
-// If the destination name already exists, it will fail with os.ErrExist. If
+// If the destination NameField already exists, it will fail with os.ErrExist. If
 // the file being moved is a directory, all children will also be moved
 func (fs *ObjStorFs) Rename(oldName, newName string) error {
 	ctx, _ := fs.getOperationContext("Rename", deadlineKeyWrite)

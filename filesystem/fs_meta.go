@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Chmod will set the file mode of the specified file. If the file does not
+// Chmod will set the file ModeField of the specified file. If the file does not
 // exist, it will return os.ErrNotExist. If the permission is invalid, it will
 // return os.ErrPermission
 func (fs *ObjStorFs) Chmod(name string, mode os.FileMode) error {
@@ -20,7 +20,7 @@ func (fs *ObjStorFs) ChmodEx(ctx context.Context, name string, mode os.FileMode)
 	return nil
 }
 
-// Chtimes will set the access (atime) and modified (mtime) timestamps of the
+// Chtimes will set the access (atime) and modified (MtimeField) timestamps of the
 // specified file. If the file does not exist, it will return os.ErrNotExist
 func (fs *ObjStorFs) Chtimes(name string, atime, mtime time.Time) error {
 	ctx, _ := fs.getOperationContext("Chtimes", deadlineKeyMetadataWrite)
