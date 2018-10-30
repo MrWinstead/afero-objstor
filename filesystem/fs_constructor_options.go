@@ -1,9 +1,9 @@
 package filesystem
 
 import (
+	"github.com/google/go-cloud/blob"
 	"time"
 
-	"github.com/google/go-cloud/blob"
 	"github.com/spf13/afero"
 )
 
@@ -41,6 +41,7 @@ var (
 		WithMaxCachedFilesCount(DefaultMaxCachedFiles),
 		WithMaxCachedDirectoryCount(DefaultMaxCachedDirectories),
 		WithMaxCachedFilesSize(DefaultMaxCachedFilesSize),
+		OptimizeForRead(),
 	}
 )
 
@@ -130,6 +131,24 @@ func WithDefaultMetadataReadDeadline(d time.Duration) ConstructorOption {
 func WithDefaultMetadataWriteDeadline(d time.Duration) ConstructorOption {
 	return func(fs *ObjStorFs) error {
 		fs.opts.deadlines[deadlineKeyMetadataWrite] = d
+		return nil
+	}
+}
+
+// OptimizeForRead will flush unsynced file changes when the file is written
+func OptimizeForRead() ConstructorOption {
+	return func(fs *ObjStorFs) error {
+		fs.opts.readOptimize = true
+		fs.opts.writeOptimize = false
+		return nil
+	}
+}
+
+// OptimizeForWrite will flush unsynced file changes when the file is read
+func OptimizeForWrite() ConstructorOption {
+	return func(fs *ObjStorFs) error {
+		fs.opts.writeOptimize = true
+		fs.opts.readOptimize = false
 		return nil
 	}
 }

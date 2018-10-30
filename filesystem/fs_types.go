@@ -1,9 +1,9 @@
 package filesystem
 
 import (
+	"github.com/google/go-cloud/blob"
 	"time"
 
-	"github.com/google/go-cloud/blob"
 	"github.com/hashicorp/golang-lru"
 	"github.com/spf13/afero"
 )
@@ -12,7 +12,9 @@ import (
 type ConstructorOption func(fs *ObjStorFs) error
 
 type fsOptions struct {
-	deadlines map[string]time.Duration
+	deadlines     map[string]time.Duration
+	readOptimize  bool
+	writeOptimize bool
 }
 
 // ObjStorFs is an Object Storage-backed filesystem

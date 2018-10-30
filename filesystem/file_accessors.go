@@ -9,7 +9,7 @@ import (
 
 // Name returns the filename of the object
 func (o *ProjectedObject) Name() string {
-	return o.Name()
+	return o.localInstance.Name()
 }
 
 // Read from the object into the provided buffer
@@ -21,7 +21,10 @@ func (o *ProjectedObject) Read(p []byte) (int, error) {
 // ReadEx behaves like Read, but also allows passing a context with possible
 // deadline to lower layers
 func (o *ProjectedObject) ReadEx(ctx context.Context, p []byte) (int, error) {
-	return o.ReadAtEx(ctx, p, o.currentPosition)
+	if o.fs.opts.writeOptimize || !o.fs.opts.readOptimize {
+		o.Sync()
+	}
+	return o.localInstance.Read(p)
 }
 
 // ReadAt pulls bytes from the object into the provided buffer at the file's
@@ -35,11 +38,10 @@ func (o *ProjectedObject) ReadAt(p []byte, off int64) (int, error) {
 // deadline to lower layers
 func (o *ProjectedObject) ReadAtEx(ctx context.Context, p []byte, off int64) (
 	int, error) {
-	err := &errors.UnsupportedOperation{
-		OperationFriendlyName: "ReadAt",
-		Reason:                "not implemented",
+	if o.fs.opts.writeOptimize || !o.fs.opts.readOptimize {
+		o.Sync()
 	}
-	return 0, err
+	return o.localInstance.ReadAt(p, off)
 }
 
 // Readdir enumerates file information about all immediate children of this file

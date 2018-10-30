@@ -27,10 +27,10 @@ type DeadlineFs interface {
 	// Open opens a file, returning it or an error, if any happens.
 	OpenEx(ctx context.Context, name string) (DeadlineFile, error)
 
-	// OpenFile opens a file using the given flags and the given mode.
+	// OpenFile opens a file using the given flags and the given ModeField.
 	OpenFileEx(ctx context.Context, name string, flag int, perm os.FileMode) (DeadlineFile, error)
 
-	// Remove removes a file identified by name, returning an error, if any
+	// Remove removes a file identified by NameField, returning an error, if any
 	// happens.
 	RemoveEx(ctx context.Context, name string) error
 
@@ -45,7 +45,7 @@ type DeadlineFs interface {
 	// happens.
 	StatEx(ctx context.Context, name string) (os.FileInfo, error)
 
-	//Chmod changes the mode of the named file to mode.
+	//Chmod changes the ModeField of the named file to ModeField.
 	ChmodEx(ctx context.Context, name string, mode os.FileMode) error
 
 	//Chtimes changes the access and modification times of the named file

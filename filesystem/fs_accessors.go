@@ -2,11 +2,13 @@ package filesystem
 
 import (
 	"context"
+	"github.com/google/go-cloud/blob"
 	"github.com/spf13/afero"
 	"os"
+	"path"
 )
 
-// Name fetches the name of the filesystem driver
+// Name fetches the NameField of the filesystem driver
 func (fs *ObjStorFs) Name() string {
 	return "object-storage"
 }
@@ -21,8 +23,55 @@ func (fs *ObjStorFs) Open(name string) (afero.File, error) {
 
 // OpenEx behaves like Open, but also allows passing a context with possible
 // deadline to lower layers
-func (fs *ObjStorFs) OpenEx(ctx context.Context, name string) (DeadlineFile, error) {
-	return nil, nil
+func (fs *ObjStorFs) OpenEx(ctx context.Context, name string) (
+	file DeadlineFile, err error) {
+	fileIface, exists := fs.filesCache.Get(name)
+	if exists {
+		return fileIface.(*ProjectedObject), nil
+	}
+
+	defer func() {
+		if nil != err {
+			fs.Remove(name)
+		}
+	}()
+
+	prefixedName := path.Join(fs.keyPrefix, name)
+	if '/' == prefixedName[0] {
+		prefixedName = prefixedName[1:]
+	}
+	attrs, err := fs.bucket.Attributes(ctx, prefixedName)
+	if nil != err {
+		if blob.IsNotExist(err) {
+			return nil, os.ErrNotExist
+		}
+		return nil, err
+	}
+
+	createdFile, localCreateErr := fs.localFs.Create(name)
+	if nil != localCreateErr {
+		return nil, localCreateErr
+	}
+
+	serializedFileInfo, exists := attrs.Metadata[metadataKeyAttributes]
+	if exists {
+		fileInfo, deserializationErr := fileinfoFromJSONStr(serializedFileInfo)
+		if nil == deserializationErr {
+			applyErr := applyFileInfo(fs, fileInfo)
+			if nil != applyErr {
+				return nil, applyErr
+			}
+		}
+	}
+
+	projectedFile, projectedCreateErr := newFile(fs, createdFile,
+		fileTypeFile)
+	if nil != projectedCreateErr {
+		return nil, projectedCreateErr
+	}
+	fs.filesCache.Add(name, projectedFile)
+
+	return projectedFile, nil
 }
 
 // OpenFile will open a file in the local file cache. If O_CREATE is specified
